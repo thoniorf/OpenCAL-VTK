@@ -1,4 +1,5 @@
-#include "sciddicaT.c"
+#include "sciddicaT.h"
+#include "vtk.h"
 int main()
 {
     time_t start_time, end_time;

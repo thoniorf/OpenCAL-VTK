@@ -26,8 +26,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
 include(${VTK_USE_FILE})
 
 file(GLOB SRC
-    "include/*.h"
-    "source/*.c"
+    "source/*.cxx"
 )
 
 add_executable(calvtk_sciddicaT-unsafe ${SRC})

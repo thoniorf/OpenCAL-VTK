@@ -1,10 +1,6 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
 #ifndef SciddicaT
 #define SciddicaT
 // The SciddicaT further optimized CCA debris flows model
-
 #include <OpenCAL/cal2D.h>
 #include <OpenCAL/cal2DIO.h>
 #include <OpenCAL/cal2DRun.h>
@@ -28,16 +24,23 @@ extern "C" {
 struct sciddicaTSubstates {
     struct CALSubstate2Dr *z;
     struct CALSubstate2Dr *h;
-} Q;
+};
 
 struct sciddicaTParameters {
     CALParameterr epsilon;
     CALParameterr r;
-} P;
+};
+extern struct CALModel2D* sciddicaT;
+extern  struct CALRun2D* sciddicaT_simulation;
+extern struct sciddicaTSubstates Q;
+extern struct sciddicaTParameters P;
+
 void sciddicaTFlowsComputation(struct CALModel2D* sciddicaT, int i, int j);
 void sciddicaTRemoveInactiveCells(struct CALModel2D* sciddicaT, int i, int j);
 void sciddicaTSimulationInit(struct CALModel2D* sciddicaT);
+void sciddicaTCADefinition();
+void sciddicaTConfigurationLoad();
+void sciddicaTConfigurationSave();
+void sciddicaTFinalization();
 #endif
-#ifdef __cplusplus
-}
-#endif
+

@@ -27,9 +27,5 @@ include(${VTK_USE_FILE})
 file(GLOB SRC
     "source/*.c*"
 )
-file(GLOB HEADER
-    "source/*.h*"
-)
-
-add_executable(calvtk_sciddicaT-unsafe ${SRC} ${HEADER})
+add_executable(calvtk_sciddicaT-unsafe ${SRC})
 target_link_libraries(calvtk_sciddicaT-unsafe ${OPENCAL_LIBRARIES} ${VTK_LIBRARIES})

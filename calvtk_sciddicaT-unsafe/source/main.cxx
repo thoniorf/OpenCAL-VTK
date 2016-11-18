@@ -9,6 +9,8 @@ int main()
 
     sciddicaTCADefinition();
     sciddicaTConfigurationLoad();
+    vtkDataSetLoad();
+    vtkRenderDefinition();
     // simulation run
     calRunAddInitFunc2D(sciddicaT_simulation, sciddicaTSimulationInit);
     printf ("Starting simulation...\n");
@@ -18,8 +20,6 @@ int main()
     printf ("Simulation terminated.\nElapsed time: %lds\n", end_time-start_time);
     sciddicaTConfigurationSave();
     sciddicaTFinalization();
-
-
-
-    return 0;
+    vtkFinalization();
+    return EXIT_SUCCESS;
 }

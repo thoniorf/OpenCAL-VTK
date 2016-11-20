@@ -6,22 +6,22 @@ extern "C"{
 #include <vtkSmartPointer.h>
 #include <vtkCommand.h>
 #include <vtkCallbackCommand.h>
-#include <vtkPoints.h>
-#include <vtkDataSet.h>
-#include <vtkImageData.h>
-#include <vtkDataSetMapper.h>
+#include <vtkDoubleArray.h>
+#include <vtkCellData.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkInteractorStyleJoystickCamera.h>
 #include <vtkLookupTable.h>
+#include <vtkPlaneSource.h>
 #include <stdio.h>
 
 #define VTK_SP(type,name) vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
 
-extern vtkSmartPointer<vtkImageData> topology;
-extern vtkSmartPointer<vtkDataSetMapper> topologyMapper;
+//extern vtkSmartPointer<vtkPlaneSource> topology;
 
 void vtkDataSetLoad();
 void vtkRenderDefinition();

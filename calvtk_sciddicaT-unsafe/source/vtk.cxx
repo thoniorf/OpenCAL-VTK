@@ -1,32 +1,58 @@
 #include "vtk.h"
-vtkSmartPointer<vtkImageData> topology;
-vtkSmartPointer<vtkDataSetMapper> topologyMapper;
+
+vtkSmartPointer<vtkDoubleArray> elevation;
+vtkSmartPointer<vtkPlaneSource> topology;
+vtkSmartPointer<vtkPolyDataMapper> topologyMapper;
 vtkSmartPointer<vtkActor> topologyActor;
 vtkSmartPointer<vtkRenderer> renderer;
 vtkSmartPointer<vtkRenderWindow> renderWindow;
 vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;
 vtkSmartPointer<vtkInteractorStyleJoystickCamera> joystickStyleInteractor;
+
 void vtkDataSetLoad(){
-    topology = vtkSmartPointer<vtkImageData>::New();
-    topology->SetDimensions(ROWS,COLS,1);
-    topology->SetSpacing(1.0,1.0,1.0);
-    topology->SetOrigin(.0,.0,.0);
+    topology = vtkSmartPointer<vtkPlaneSource>::New();
+    topology->SetResolution(COLS,ROWS);
+    topology->Update();
+
+    elevation = vtkSmartPointer<vtkDoubleArray>::New();
+    elevation->SetName("Elevation");
+    for(int i = 0; i< ROWS; i++){
+        for(int j = 0; j <COLS  ;j++){
+            elevation->InsertNextValue(calGet2Dr(sciddicaT,Q.z,i,j));
+        }
+    }
+    topology->GetOutput()->GetCellData()->SetScalars(elevation);
 
 }
 void vtkRenderDefinition(){
-    topologyMapper = vtkSmartPointer<vtkDataSetMapper>::New();
-    topologyMapper-> SetInputData(topology);
+
+    VTK_SP(vtkLookupTable,colorTable);
+    colorTable->SetTableRange(0,1500);
+    colorTable->SetValueRange(0,1);
+    colorTable->SetHueRange(0,0);
+    colorTable->SetSaturationRange(0,0);
+    colorTable->Build();
+
+    topologyMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    topologyMapper->SetInputConnection(topology->GetOutputPort());
+    topologyMapper->SetScalarModeToUseCellData();
+    topologyMapper->SetColorModeToMapScalars();
+    topologyMapper->SetScalarRange(0,1500);
+    topologyMapper->SetLookupTable(colorTable);
+
 
     topologyActor = vtkSmartPointer<vtkActor>::New();
     topologyActor->SetMapper(topologyMapper);
 
     renderer = vtkSmartPointer<vtkRenderer>::New();
     renderer->AddActor(topologyActor);
-    renderer->SetViewport(.0,.0,1,1);
+    renderer->SetBackground(.1,.2,.3);
+    renderer->SetViewport(0,0,1,1);
 
     renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
     renderWindow->AddRenderer(renderer);
     renderWindow->SetWindowName("calvtk_sciddicaT_unsafe");
+    renderWindow->SetSize(640,480);
 
     renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
     renderWindowInteractor->SetRenderWindow(renderWindow);

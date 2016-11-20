@@ -1,6 +1,7 @@
+// The SciddicaT further optimized CCA debris flows model
 #ifndef SciddicaT
 #define SciddicaT
-// The SciddicaT further optimized CCA debris flows model
+
 #include <OpenCAL/cal2D.h>
 #include <OpenCAL/cal2DIO.h>
 #include <OpenCAL/cal2DRun.h>
@@ -38,6 +39,8 @@ extern struct sciddicaTParameters P;
 void sciddicaTFlowsComputation(struct CALModel2D* sciddicaT, int i, int j);
 void sciddicaTRemoveInactiveCells(struct CALModel2D* sciddicaT, int i, int j);
 void sciddicaTSimulationInit(struct CALModel2D* sciddicaT);
+void sciddicaTransitionFunction(struct CALModel2D* sciddicaT);
+CALbyte sciddicaTSimulationStopCondition(struct CALModel2D* sciddicaT);
 void sciddicaTCADefinition();
 void sciddicaTConfigurationLoad();
 void sciddicaTConfigurationSave();

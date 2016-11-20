@@ -13,7 +13,6 @@ void vtkDataSetLoad(){
     topology = vtkSmartPointer<vtkPlaneSource>::New();
     topology->SetResolution(COLS,ROWS);
     topology->Update();
-
     elevation = vtkSmartPointer<vtkDoubleArray>::New();
     elevation->SetName("Elevation");
     for(int i = 0; i< ROWS; i++){
@@ -22,7 +21,6 @@ void vtkDataSetLoad(){
         }
     }
     topology->GetOutput()->GetCellData()->SetScalars(elevation);
-
 }
 void vtkRenderDefinition(){
 
@@ -48,6 +46,8 @@ void vtkRenderDefinition(){
     renderer->AddActor(topologyActor);
     renderer->SetBackground(.1,.2,.3);
     renderer->SetViewport(0,0,1,1);
+    renderer->GetActiveCamera()->SetViewUp(0,-1,0);
+    renderer->GetActiveCamera()->Azimuth(180);
 
     renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
     renderWindow->AddRenderer(renderer);

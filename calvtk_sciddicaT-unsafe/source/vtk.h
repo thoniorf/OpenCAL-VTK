@@ -17,6 +17,7 @@ extern "C"{
 #include <vtkInteractorStyleJoystickCamera.h>
 #include <vtkLookupTable.h>
 #include <vtkPlaneSource.h>
+#include <vtkCamera.h>
 #include <stdio.h>
 
 #define VTK_SP(type,name) vtkSmartPointer<type> name = vtkSmartPointer<type>::New()

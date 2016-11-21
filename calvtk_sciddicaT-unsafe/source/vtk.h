@@ -22,7 +22,8 @@ extern "C"{
 #define VTK_SP(type,name) vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
 extern vtkSmartPointer<vtkRenderWindow> renderWindow;
 void vtkDataSetLoad();
-void vtkDataSetScalarsSet();
+void vtkDataSetScalarsUpdate();
+void vtkDataSetScalarsInit();
 void vtkRenderDefinition();
 void vtkFinalization();
 

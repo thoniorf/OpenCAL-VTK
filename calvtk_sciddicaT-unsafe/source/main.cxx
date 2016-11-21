@@ -11,7 +11,7 @@ int main()
     sciddicaTCADefinition();
     sciddicaTConfigurationLoad();
     vtkDataSetLoad();
-    vtkDataSetScalarsSet();
+    vtkDataSetScalarsInit();
     vtkRenderDefinition();
     // simulation run
     calRunAddInitFunc2D(sciddicaT_simulation, sciddicaTSimulationInit);
@@ -24,12 +24,11 @@ int main()
     calRunInitSimulation2D(sciddicaT_simulation);
     // the do-while explicitates the calRun2D() implicit looop
     do{
-            again = calRunCAStep2D(sciddicaT_simulation);
-            sciddicaT_simulation->step++;
-            // update visualization
-               vtkDataSetScalarsSet();
-               renderWindow->Render();
-               printf("Step++");
+        again = calRunCAStep2D(sciddicaT_simulation);
+        sciddicaT_simulation->step++;
+        // update visualization
+        vtkDataSetScalarsUpdate();
+        renderWindow->Render();
     } while (again);
     calRunFinalizeSimulation2D(sciddicaT_simulation);
     end_time = time(NULL);

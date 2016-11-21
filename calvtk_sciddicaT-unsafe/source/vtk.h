@@ -6,7 +6,7 @@ extern "C"{
 #include <vtkSmartPointer.h>
 #include <vtkCommand.h>
 #include <vtkCallbackCommand.h>
-#include <vtkDoubleArray.h>
+#include <vtkUnsignedCharArray.h>
 #include <vtkCellData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
@@ -15,21 +15,17 @@ extern "C"{
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkInteractorStyleJoystickCamera.h>
-#include <vtkLookupTable.h>
 #include <vtkPlaneSource.h>
 #include <vtkCamera.h>
 #include <stdio.h>
 
 #define VTK_SP(type,name) vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
-
-//extern vtkSmartPointer<vtkPlaneSource> topology;
-
+extern vtkSmartPointer<vtkRenderWindow> renderWindow;
 void vtkDataSetLoad();
+void vtkDataSetScalarsSet();
 void vtkRenderDefinition();
 void vtkFinalization();
 
 void KeypressCallbackFunction (vtkObject* caller, long unsigned int eventId, void* clientData, void* callData );
 
 #endif
-// lookuptable for gray an red scale
-// update the scalar value of cell and render

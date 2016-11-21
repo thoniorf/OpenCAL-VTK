@@ -11,6 +11,7 @@ int main()
     sciddicaTCADefinition();
     sciddicaTConfigurationLoad();
     vtkDataSetLoad();
+    vtkDataSetScalarsSet();
     vtkRenderDefinition();
     // simulation run
     calRunAddInitFunc2D(sciddicaT_simulation, sciddicaTSimulationInit);
@@ -25,6 +26,10 @@ int main()
     do{
             again = calRunCAStep2D(sciddicaT_simulation);
             sciddicaT_simulation->step++;
+            // update visualization
+               vtkDataSetScalarsSet();
+               renderWindow->Render();
+               printf("Step++");
     } while (again);
     calRunFinalizeSimulation2D(sciddicaT_simulation);
     end_time = time(NULL);

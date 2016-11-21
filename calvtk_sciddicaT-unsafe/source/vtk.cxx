@@ -1,6 +1,6 @@
 #include "vtk.h"
-
-vtkSmartPointer<vtkDoubleArray> elevation;
+double z_min,z_Max,h_min,h_Max;
+vtkSmartPointer<vtkUnsignedCharArray> cellData;
 vtkSmartPointer<vtkPlaneSource> topology;
 vtkSmartPointer<vtkPolyDataMapper> topologyMapper;
 vtkSmartPointer<vtkActor> topologyActor;
@@ -13,31 +13,67 @@ void vtkDataSetLoad(){
     topology = vtkSmartPointer<vtkPlaneSource>::New();
     topology->SetResolution(COLS,ROWS);
     topology->Update();
-    elevation = vtkSmartPointer<vtkDoubleArray>::New();
-    elevation->SetName("Elevation");
-    for(int i = 0; i< ROWS; i++){
-        for(int j = 0; j <COLS  ;j++){
-            elevation->InsertNextValue(calGet2Dr(sciddicaT,Q.z,i,j));
+    cellData = vtkSmartPointer<vtkUnsignedCharArray>::New();
+    cellData->SetName("CellData");
+    cellData->SetNumberOfComponents(3);
+    cellData->SetNumberOfTuples(topology->GetOutput()->GetNumberOfCells());
+    // computer extremes
+    for(int i = 0; i < ROWS; i++){
+        for(int j = 0; j < COLS; j++){
+            z_Max = calGet2Dr(sciddicaT,Q.z,i,j);
+            if(z_Max != 0)
+                z_min = z_Max;
+            h_Max = calGet2Dr(sciddicaT,Q.h,i,j);
+            if(h_Max != 0)
+                h_min = h_Max;
         }
     }
-    topology->GetOutput()->GetCellData()->SetScalars(elevation);
-}
-void vtkRenderDefinition(){
+    for(int i = 0; i < ROWS; i++){
+        for(int j = 0; j < COLS; j++){
+            if(calGet2Dr(sciddicaT,Q.z,i,j)>0){
+                if(z_Max < calGet2Dr(sciddicaT,Q.z,i,j))
+                    z_Max = calGet2Dr(sciddicaT,Q.z,i,j);
+                if(z_min > calGet2Dr(sciddicaT,Q.z,i,j))
+                    z_min = calGet2Dr(sciddicaT,Q.z,i,j);
+            }
+            if(calGet2Dr(sciddicaT,Q.h,i,j)>0){
+                if(h_Max < calGet2Dr(sciddicaT,Q.h,i,j))
+                    h_Max = calGet2Dr(sciddicaT,Q.h,i,j);
+                if(h_min > calGet2Dr(sciddicaT,Q.h,i,j))
+                    h_min = calGet2Dr(sciddicaT,Q.h,i,j);
+            }
+        }
+    }
 
-    VTK_SP(vtkLookupTable,colorTable);
-    colorTable->SetTableRange(0,1500);
-    colorTable->SetValueRange(0,1);
-    colorTable->SetHueRange(0,0);
-    colorTable->SetSaturationRange(0,0);
-    colorTable->Build();
+}
+void vtkDataSetScalarsSet(){
+    double z,h,t=0;
+    float color[3];
+    for(int i = 0; i< ROWS; i++){
+        for(int j = 0; j <COLS  ;j++){
+            h = calGet2Dr(sciddicaT,Q.h,i,j);
+            z = calGet2Dr(sciddicaT,Q.z,i,j);
+            if(h>0){
+                color[0] = 1;
+                color[1] = (z-z_min)/(z_Max-z_min);
+                color[2] = 0;
+            }else if(z>=0){
+                color[0] = (z-z_min)/(z_Max-z_min);
+                color[1] = (z-z_min)/(z_Max-z_min);
+                color[2] = (z-z_min)/(z_Max-z_min);
+            }
+            cellData->InsertNextTuple(color);
+        }
+    }
+    topology->GetOutput()->GetCellData()->SetScalars(cellData);
+    topology->Update();
+}
+
+void vtkRenderDefinition(){
 
     topologyMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     topologyMapper->SetInputConnection(topology->GetOutputPort());
     topologyMapper->SetScalarModeToUseCellData();
-    topologyMapper->SetColorModeToMapScalars();
-    topologyMapper->SetScalarRange(0,1500);
-    topologyMapper->SetLookupTable(colorTable);
-
 
     topologyActor = vtkSmartPointer<vtkActor>::New();
     topologyActor->SetMapper(topologyMapper);
@@ -62,7 +98,7 @@ void vtkRenderDefinition(){
     joystickStyleInteractor = vtkSmartPointer<vtkInteractorStyleJoystickCamera>::New();
     renderWindowInteractor->SetInteractorStyle(joystickStyleInteractor);
     renderWindow->Render();
-    renderWindowInteractor->Start();
+    //renderWindowInteractor->Start();
 }
 
 void vtkFinalization(){
@@ -76,8 +112,8 @@ void vtkFinalization(){
 void KeypressCallbackFunction(vtkObject *caller, unsigned long eventId, void *clientData, void *callData){
     std::cout<<"Exit"<<endl;
     vtkRenderWindowInteractor *iren =  static_cast<vtkRenderWindowInteractor*>(caller);
-      // Close the window
-      iren->GetRenderWindow()->Finalize();
-      // Stop the interactor
-      iren->TerminateApp();
+    // Close the window
+    iren->GetRenderWindow()->Finalize();
+    // Stop the interactor
+    iren->TerminateApp();
 }

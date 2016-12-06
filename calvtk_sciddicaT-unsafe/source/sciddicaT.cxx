@@ -1,8 +1,10 @@
 #include "sciddicaT.h"
+
 struct CALModel2D* sciddicaT;
 struct CALRun2D* sciddicaT_simulation;
 struct sciddicaTSubstates Q;
 struct sciddicaTParameters P;
+
 // The sciddicaT transition function
 void sciddicaTFlowsComputation(struct CALModel2D* sciddicaT, int i, int j)
 {
@@ -99,15 +101,15 @@ void sciddicaTSimulationInit(struct CALModel2D* sciddicaT)
 
 void sciddicaTransitionFunction(struct CALModel2D* sciddicaT)
 {
-  // active cells must be updated first becouse outflows
-  // have already been sent to (pheraps inactive) the neighbours
-    calApplyElementaryProcess2D(sciddicaT, sciddicaTFlowsComputation);
-    calUpdateActiveCells2D(sciddicaT);
-    calUpdateSubstate2Dr(sciddicaT, Q.h);
+    // active cells must be updated first becouse outflows
+    // have already been sent to (pheraps inactive) the neighbours
+      calApplyElementaryProcess2D(sciddicaT, sciddicaTFlowsComputation);
+      calUpdateActiveCells2D(sciddicaT);
+      calUpdateSubstate2Dr(sciddicaT, Q.h);
 
-  // here you don't need to update Q.h
-    calApplyElementaryProcess2D(sciddicaT, sciddicaTRemoveInactiveCells);
-    calUpdateActiveCells2D(sciddicaT);
+    // here you don't need to update Q.h
+      calApplyElementaryProcess2D(sciddicaT, sciddicaTRemoveInactiveCells);
+      calUpdateActiveCells2D(sciddicaT);
 }
 
 

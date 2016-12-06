@@ -24,8 +24,10 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/source)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
                     ${OPENCAL_INCLUDE_DIR})
 include(${VTK_USE_FILE})
+
 file(GLOB SRC
     "source/*.c*"
 )
+
 add_executable(calvtk_sciddicaT-unsafe ${SRC})
 target_link_libraries(calvtk_sciddicaT-unsafe ${OPENCAL_LIBRARIES} ${VTK_LIBRARIES})

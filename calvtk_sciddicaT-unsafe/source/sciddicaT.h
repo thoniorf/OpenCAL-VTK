@@ -2,17 +2,21 @@
 #ifndef SciddicaT
 #define SciddicaT
 
+extern "C" {
 #include <OpenCAL/cal2D.h>
 #include <OpenCAL/cal2DIO.h>
 #include <OpenCAL/cal2DRun.h>
 #include <OpenCAL/cal2DUnsafe.h>
 #include <stdlib.h>
 #include <time.h>
+}
+
 
 // Some definitions...
 #define ROWS 610
 #define COLS 496
 #define P_R 0.5
+#define CELLSIZE 10
 #define P_EPSILON 0.001
 #define STEPS 4000
 #define DEM_PATH "./data/dem.txt"

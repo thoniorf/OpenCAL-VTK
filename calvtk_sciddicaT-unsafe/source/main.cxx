@@ -1,8 +1,19 @@
-extern "C"{
 #include "sciddicaT.h"
+#include "sciddicatvtkrender.h"
+SciddicaTVTKRender *vtkRender;
+
+void simulationRunStep ( vtkObject* caller, long unsigned int vtkNotUsed(eventId), void* vtkNotUsed(clientData), void* vtkNotUsed(callData) )
+{
+    // add exit condition
+    calRunCAStep2D(sciddicaT_simulation);
+    sciddicaT_simulation->step++;
+    if(sciddicaT_simulation->step % 10 == 0) {
+        vtkRender->Update();
+        vtkRender->Render();
+    }
+
 }
 
-#include "vtk.h"
 int main()
 {
     CALbyte again;
@@ -10,9 +21,9 @@ int main()
 
     sciddicaTCADefinition();
     sciddicaTConfigurationLoad();
-    vtkDataSetLoad();
-    vtkDataSetScalarsInit();
-    vtkRenderDefinition();
+    vtkRender = new SciddicaTVTKRender();
+    vtkRender->RenderInizialization();
+
     // simulation run
     calRunAddInitFunc2D(sciddicaT_simulation, sciddicaTSimulationInit);
     calRunAddGlobalTransitionFunc2D(sciddicaT_simulation, sciddicaTransitionFunction);
@@ -22,19 +33,18 @@ int main()
     start_time = time(NULL);
     // applies the callback init func registered by calRunAddInitFunc2D()
     calRunInitSimulation2D(sciddicaT_simulation);
-    // the do-while explicitates the calRun2D() implicit looop
-    do{
-        again = calRunCAStep2D(sciddicaT_simulation);
-        sciddicaT_simulation->step++;
-        // update visualization
-        vtkDataSetScalarsUpdate();
-        renderWindow->Render();
-    } while (again);
+
+    vtkRender->Inizialize();
+    vtkRender->CreateTimerEvent(1,simulationRunStep);
+    vtkRender->Start();
+
     calRunFinalizeSimulation2D(sciddicaT_simulation);
     end_time = time(NULL);
     printf ("Simulation terminated.\nElapsed time: %lds\n", end_time-start_time);
     sciddicaTConfigurationSave();
     sciddicaTFinalization();
-    vtkFinalization();
+
+    delete vtkRender;
+
     return EXIT_SUCCESS;
 }

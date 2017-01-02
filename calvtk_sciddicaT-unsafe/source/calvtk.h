@@ -33,21 +33,47 @@ extern "C" {
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkUnsignedCharArray.h>
 #include <vtkWarpScalar.h>
+#include <vtkMutexLock.h>
 
-
+#include <algorithm>
 #include <stdio.h>
 #include <string>
 #include <vector>
 #include <mutex>
 
-extern std::mutex lock;
-
 #define VTK_DEF(type,name) vtkSmartPointer<type> name
 #define VTK_INI(type,name) name = vtkSmartPointer<type>::New()
 
-#define Z_OFFSET_STEP 0.0001
+#define Z_OFFSET_STEP 100
 
 enum calvtkBaseRendering { CALVTK_RENDER2D,CALVTK_RENDER3D,CALVTK_VOLUMERENDER,CALVTK_SURFACERENDER};
+class CALVTKRenderingTimer : public vtkCommand
+{
+public:
+    vtkTypeMacro(CALVTKRenderingTimer,vtkCommand)
+
+    static CALVTKRenderingTimer *New()
+    {
+        return new CALVTKRenderingTimer;
+    }
+
+    void Execute(vtkObject *caller, unsigned long eventId,
+                 void *vtkNotUsed(callData))
+    {
+        if(caller->IsA("vtkRenderWindowInteractor"))
+        {
+            vtkRenderWindowInteractor *renderWindow = static_cast<vtkRenderWindowInteractor*>(caller);
+
+            if(vtkCommand::TimerEvent == eventId)
+            {
+                renderWindow->Render();
+            }
+        }
+    }
+private:
+    vtkMutexLock* renderLock;
+
+};
 
 class CALVTKRender
 {
@@ -71,6 +97,7 @@ public:
     void calvtkGenerateLayerLookupTable(int layer_id);
     void calvtkGenerateAllLayerLookupTable();
     void calvtkBuildAllLayerLookupTable();
+    void calvtkUpdateLayerLookupTable(int layer_id);
 
     void calvtkSetLayerHueRange(int layer_id,double minHue,double maxHue);
     void calvtkSetLayerSaturationRange(int layer_id,double minSaturation,double maxSaturation);
@@ -87,6 +114,7 @@ public:
     void calvtkWarpScalar();
 
     void calvtkRenderInizialization();
+    void calvtkRenderInizialization(unsigned long renderingTimerDuration);
 
     void Update();
     void Render();
@@ -122,10 +150,11 @@ private:
 
     vtkAxesActor* axes;
 
-
     vtkRenderer* renderer;
     vtkRenderWindow* renderWindow;
     vtkRenderWindowInteractor* renderWindowInteractor;
+
+    CALVTKRenderingTimer* renderingTimer;
 
 };
 

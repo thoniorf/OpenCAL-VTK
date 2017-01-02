@@ -77,7 +77,7 @@ int CALVTKRender::calvtkGetLayerId(CALSubstate2Dr *substate)
 void CALVTKRender::calvtkGenerateLayerScalarValues(int layer_id)
 {
     int dataset_id = layer_id;
-    extremes.push_back(new double[2]);
+    extremes.push_back(new double[2]{0});
     ComputeExtremes(model,layers[layer_id],&extremes[layer_id][0],&extremes[layer_id][1]);
     // array for cell scalars
     VTK_DEF(vtkDoubleArray,celldata);
@@ -112,16 +112,19 @@ void CALVTKRender::calvtkSetBaseRendering(calvtkBaseRendering baseRender)
 void CALVTKRender::calvtkUpdateLayerScalarValues(int layer_id)
 {
     int dataset_id = layer_id;
+    ComputeExtremes(model,layers[layer_id],&extremes[layer_id][0],&extremes[layer_id][1]);
     vtkDoubleArray *scalars = vtkDoubleArray::FastDownCast(datasets[dataset_id]->GetCellData()->GetScalars());
     int valueIndex = 0;
     double z = 0;
     for(int i = 0; i < rows; i++){
         for(int j = 0; j < cols; j++){
+
             z = calGet2Dr(model,layers[layer_id],i,j);
             scalars->SetValue(valueIndex,z);
             valueIndex ++;
         }
     }
+    scalars->Modified();
 }
 
 void CALVTKRender::calvtkWarpScalar()
@@ -163,6 +166,7 @@ CALVTKRender::CALVTKRender(CALModel2D *model,int cellsize)
 
 CALVTKRender::~CALVTKRender()
 {
+    renderingTimer->Delete();
     renderWindowInteractor->Delete();
     renderWindow->Delete();
     renderer->Delete();
@@ -244,15 +248,24 @@ void CALVTKRender::calvtkGenerateLayerLookupTable(int layer_id)
 {
     vtkLookupTable* lookupTable = vtkLookupTable::New();
     lookupTable->SetNumberOfTableValues(extremes[layer_id][1]+1);
-    lookupTable->SetRange(extremes[layer_id][1],extremes[layer_id][1]);
+    lookupTable->SetRange(extremes[layer_id][0],extremes[layer_id][1]);
     // default values
     lookupTable->UseBelowRangeColorOn();
     lookupTable->SetBelowRangeColor(0,0,0,0);
     lookupTable->UseAboveRangeColorOn();
     lookupTable->SetAboveRangeColor(0,0,0,0);
     lookupTable->SetHueRange(0.0,0.16);
+    lookupTable->SetAlphaRange(1.0,1.0);
 
     lookupTables.push_back(lookupTable);
+}
+void CALVTKRender::calvtkUpdateLayerLookupTable(int layer_id){
+  vtkLookupTable* lookupTable = lookupTables[layer_id];
+  lookupTable->SetRange(extremes[layer_id][0],extremes[layer_id][1]);
+  lookupTable->Build();
+
+  vtkPolyDataMapper * mapper = mappers[layer_id];
+  mapper->SetScalarRange(extremes[layer_id][0],extremes[layer_id][1]);
 }
 
 void CALVTKRender::calvtkSetLayerHueRange(int layer_id, double minHue, double maxHue)
@@ -288,8 +301,12 @@ void CALVTKRender::calvtkSetLayerAboveColor(int layer_id,double red, double gree
     lookupTables[layer_id]->UseAboveRangeColorOn();
     lookupTables[layer_id]->SetAboveRangeColor(red,green,blue,alpha);
 }
-
 void CALVTKRender::calvtkRenderInizialization()
+{
+    calvtkRenderInizialization(1);
+}
+
+void CALVTKRender::calvtkRenderInizialization(unsigned long renderingTimerDuration)
 {
     vtkPolyDataMapper* mapper;
     for(int i = 0 ; i <datasets.size(); i++)
@@ -337,11 +354,25 @@ void CALVTKRender::calvtkRenderInizialization()
     renderWindowInteractor = vtkRenderWindowInteractor::New();
     renderWindowInteractor->SetInteractorStyle(vtkInteractorStyleTrackballCamera::New());
     renderWindowInteractor->SetRenderWindow(renderWindow);
+
+    renderWindowInteractor->Initialize();
+
+    if(renderingTimerDuration > 0){
+        renderingTimer = CALVTKRenderingTimer::New();
+        renderWindowInteractor->AddObserver(vtkCommand::TimerEvent,renderingTimer);
+        renderWindowInteractor->CreateRepeatingTimer(renderingTimerDuration);
+    }
 }
 
 void CALVTKRender::Update()
 {
-    // TODO
+
+    for(int i = 0; i < layers.size(); i++)
+    {
+
+        calvtkUpdateLayerScalarValues(i);
+        calvtkUpdateLayerLookupTable(i);
+    }
 }
 void CALVTKRender::Render()
 {

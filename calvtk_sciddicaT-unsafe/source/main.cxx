@@ -18,21 +18,28 @@ bool simulationUpdateAndRender(){
 }
 
 void simulationThreadWorker(bool (*simulationRunFunction)()){
+    time_t start_time, end_time;
     bool again;
+
+    printf ("Starting simulation...\n");
+    start_time = time(NULL);
+    // applies the callback init func registered by calRunAddInitFunc2D()
+    calRunInitSimulation2D(sciddicaT_simulation);
+
+
     do {
         again = (*simulationRunFunction)();
     }
     while(again);
-}
 
-void ModifiedCallback( vtkObject* vtkNotUsed(caller), long unsigned int vtkNotUsed(eventId), void* clientData, void* vtkNotUsed(callData) )
-{
-    vtkRender->Render();
+    calRunFinalizeSimulation2D(sciddicaT_simulation);
+    end_time = time(NULL);
+    printf ("Simulation terminated.\nElapsed time: %lds\n", end_time-start_time);
 }
 
 int main()
 {
-    time_t start_time, end_time;
+
 
     sciddicaTCADefinition();
     sciddicaTConfigurationLoad();
@@ -57,29 +64,16 @@ int main()
     vtkRender->calvtkAddAxes();
     vtkRender->calvtkRenderInizialization();
 
-
     // simulation run
     calRunAddInitFunc2D(sciddicaT_simulation, sciddicaTSimulationInit);
     calRunAddGlobalTransitionFunc2D(sciddicaT_simulation, sciddicaTransitionFunction);
     calRunAddStopConditionFunc2D(sciddicaT_simulation, sciddicaTSimulationStopCondition);
 
-    printf ("Starting simulation...\n");
-    start_time = time(NULL);
-    // applies the callback init func registered by calRunAddInitFunc2D()
-    calRunInitSimulation2D(sciddicaT_simulation);
+    std::thread simulationRunThread(simulationThreadWorker,simulationUpdateAndRender);
 
-
-
-    //std::thread simulationRunThread(simulationThreadWorker,simulationUpdateAndRender);
-
-    vtkRender->Inizialize();
     vtkRender->Start();
 
-    //simulationRunThread.join();
-
-    calRunFinalizeSimulation2D(sciddicaT_simulation);
-    end_time = time(NULL);
-    printf ("Simulation terminated.\nElapsed time: %lds\n", end_time-start_time);
+    simulationRunThread.join();
 
     sciddicaTConfigurationSave();
     sciddicaTFinalization();

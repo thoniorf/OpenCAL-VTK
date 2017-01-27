@@ -66,6 +66,7 @@ public:
 
             if(vtkCommand::TimerEvent == eventId)
             {
+                cout<<"Render"<<endl;
                 renderWindow->Render();
             }
         }

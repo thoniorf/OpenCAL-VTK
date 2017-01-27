@@ -247,7 +247,7 @@ void CALVTKRender::calvtkBuildAllLayerLookupTable()
 void CALVTKRender::calvtkGenerateLayerLookupTable(int layer_id)
 {
     vtkLookupTable* lookupTable = vtkLookupTable::New();
-    lookupTable->SetNumberOfTableValues(extremes[layer_id][1]+1);
+    //lookupTable->SetNumberOfTableValues(extremes[layer_id][1]+1);
     lookupTable->SetRange(extremes[layer_id][0],extremes[layer_id][1]);
     // default values
     lookupTable->UseBelowRangeColorOn();
@@ -357,11 +357,11 @@ void CALVTKRender::calvtkRenderInizialization(unsigned long renderingTimerDurati
 
     renderWindowInteractor->Initialize();
 
-    if(renderingTimerDuration > 0){
-        renderingTimer = CALVTKRenderingTimer::New();
-        renderWindowInteractor->AddObserver(vtkCommand::TimerEvent,renderingTimer);
-        renderWindowInteractor->CreateRepeatingTimer(renderingTimerDuration);
-    }
+//    if(renderingTimerDuration > 0){
+//        renderingTimer = CALVTKRenderingTimer::New();
+//        renderWindowInteractor->AddObserver(vtkCommand::TimerEvent,renderingTimer);
+//        renderWindowInteractor->CreateRepeatingTimer(renderingTimerDuration);
+//    }
 }
 
 void CALVTKRender::Update()
@@ -369,7 +369,6 @@ void CALVTKRender::Update()
 
     for(int i = 0; i < layers.size(); i++)
     {
-
         calvtkUpdateLayerScalarValues(i);
         calvtkUpdateLayerLookupTable(i);
     }

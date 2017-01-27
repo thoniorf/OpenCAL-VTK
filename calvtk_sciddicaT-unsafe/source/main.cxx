@@ -62,7 +62,7 @@ int main()
     vtkRender->calvtkBuildAllLayerLookupTable();
     vtkRender->calvtkWarpScalar();
     vtkRender->calvtkAddAxes();
-    vtkRender->calvtkRenderInizialization();
+    vtkRender->calvtkRenderInizialization(0);
 
     // simulation run
     calRunAddInitFunc2D(sciddicaT_simulation, sciddicaTSimulationInit);

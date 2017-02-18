@@ -1,4 +1,15 @@
 #include "calvtkrender2d.h"
+
+calvtkRender2D* calvtkRender2D::New()
+{
+    return new calvtkRender2D();
+}
+void calvtkRender2D::Delete()
+{
+    renderWindow->Delete();
+    renderer->Delete();
+}
+
 calvtkRender2D::calvtkRender2D(std::string windowName, int windowWidth, int windowHeight)
 {
     renderer = vtkRenderer::New();
@@ -12,7 +23,6 @@ calvtkRender2D::calvtkRender2D(std::string windowName, int windowWidth, int wind
 }
 calvtkRender2D::~calvtkRender2D()
 {
-    axes->Delete();
     renderWindow->Delete();
     renderer->Delete();
 }
@@ -33,12 +43,6 @@ void calvtkRender2D::AddScalarBar(calvtkScalarBar* const scalarBar)
     renderer->AddActor2D(scalarBar);
 }
 
-void calvtkRender2D::SetAxes(calvtkAxes * const axes)
-{
-    this->axes = axes;
-    renderer->AddActor(axes);
-}
-
 void calvtkRender2D::Inizialization()
 {
     for(int i = 0; i < layers.size(); i++)
@@ -54,4 +58,18 @@ void calvtkRender2D::Update()
     {
         layers[i]->Update();
     }
+}
+void calvtkRender2D::Render()
+{
+    renderWindow->Render();
+}
+
+void calvtkRender2D::SetBackgroundColor(double red, double green, double blue)
+{
+    renderer->SetBackground(red,green,blue);
+}
+
+void calvtkRender2D::ResetCamera()
+{
+    renderer->ResetCamera();
 }

@@ -25,9 +25,39 @@ void calvtkAxes::RotateWXYZ(double angle, double x, double y, double z)
     Transform->RotateWXYZ(angle,x,y,z);
 }
 
+void calvtkAxes::SetInteractor(calvtkRun *run)
+{
+    widget->SetInteractor(run->renderInteractor);
+}
+
+void calvtkAxes::SetViewport(double arg0, double arg1, double arg2, double arg3)
+{
+    widget->SetViewport(arg0,arg1,arg2,arg3);
+}
+
+void calvtkAxes::SetEnabled(int value)
+{
+    widget->SetEnabled(value);
+}
+
+void calvtkAxes::InteractiveOn()
+{
+    widget->InteractiveOn();
+}
+
+void calvtkAxes::InteractiveOff()
+{
+    widget->InteractiveOff();
+}
+
 calvtkAxes::calvtkAxes()
 {
     Transform = vtkTransform::New();
+
+    widget = vtkOrientationMarkerWidget::New();
+    widget->SetOutlineColor(0.93,0.57,0.13);
+    widget->SetOrientationMarker(this);
+
 }
 
 calvtkAxes::~calvtkAxes()

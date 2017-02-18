@@ -84,13 +84,12 @@ void CALVTKRender::calvtkGenerateLayerScalarValues(int layer_id)
     VTK_INI(vtkDoubleArray,celldata);
     celldata->SetName(layersNames[layer_id].c_str());
     celldata->SetNumberOfComponents(1);
-    celldata->SetNumberOfValues(cols*rows);
+    celldata->SetNumberOfTuples(cols*rows);
     int valueIndex = 0;
     double z = 0;
     for(int i = 0; i < rows; i++){
         for(int j = 0; j < cols; j++){
-            z = calGet2Dr(model,layers[layer_id],i,j);
-            celldata->SetValue(valueIndex,z);
+            celldata->SetComponent(valueIndex,0,calGet2Dr(model,layers[layer_id],i,j));
             valueIndex ++;
         }
     }
@@ -118,9 +117,7 @@ void CALVTKRender::calvtkUpdateLayerScalarValues(int layer_id)
     double z = 0;
     for(int i = 0; i < rows; i++){
         for(int j = 0; j < cols; j++){
-
-            z = calGet2Dr(model,layers[layer_id],i,j);
-            scalars->SetValue(valueIndex,z);
+            scalars->SetComponent(valueIndex,0,calGet2Dr(model,layers[layer_id],i,j));
             valueIndex ++;
         }
     }
@@ -357,17 +354,17 @@ void CALVTKRender::calvtkRenderInizialization(unsigned long renderingTimerDurati
 
     renderWindowInteractor->Initialize();
 
-//    if(renderingTimerDuration > 0){
-//        renderingTimer = CALVTKRenderingTimer::New();
-//        renderWindowInteractor->AddObserver(vtkCommand::TimerEvent,renderingTimer);
-//        renderWindowInteractor->CreateRepeatingTimer(renderingTimerDuration);
-//    }
+    if(renderingTimerDuration > 0){
+        renderingTimer = CALVTKRenderingTimer::New();
+        renderWindowInteractor->AddObserver(vtkCommand::TimerEvent,renderingTimer);
+        renderWindowInteractor->CreateRepeatingTimer(renderingTimerDuration);
+    }
 }
 
 void CALVTKRender::Update()
 {
 
-    for(int i = 0; i < layers.size(); i++)
+    for(int i = 1; i < layers.size(); i++)
     {
         calvtkUpdateLayerScalarValues(i);
         calvtkUpdateLayerLookupTable(i);

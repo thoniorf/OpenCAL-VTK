@@ -15,6 +15,7 @@ public:
     void SetHueRange(double hueMin, double hueMax);
     void SetSaturationRange(double saturationMin, double saturationMax);
     void SetValueRange(double valueMin, double valueMax);
+    void SetAlphaRange(double alphaMin, double alphaMax);
 
     void SetAboveRangeColor(double red, double green, double blue, double alpha);
     void SetBelowRangeColor(double red, double green, double blue, double alpha);

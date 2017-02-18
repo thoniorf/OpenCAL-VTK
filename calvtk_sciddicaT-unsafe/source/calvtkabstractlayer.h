@@ -21,7 +21,7 @@ public:
     ~calvtkAbstractLayer();
 
     std::string GetLayerName();
-    void SetName(const char *name);
+    void SetName(std::string name);
 
     virtual void GenerateDataSet() = 0;
 
@@ -30,6 +30,8 @@ public:
     virtual void UpdateScalarValues() = 0;
 
     virtual void Update() = 0;
+
+    double* GetExtremes();
 
 protected:
     virtual void ComputeExtremes() = 0;

@@ -22,6 +22,10 @@ void calvtkLookupTable::SetValueRange(double valueMin, double valueMax)
 {
     vtkLookupTable::SetValueRange(valueMin,valueMax);
 }
+void calvtkLookupTable::SetAlphaRange(double alphaMin, double alphaMax)
+{
+    vtkLookupTable::SetAlphaRange(alphaMin,alphaMax);
+}
 
 void calvtkLookupTable::SetAboveRangeColor(double red, double green, double blue, double alpha)
 {

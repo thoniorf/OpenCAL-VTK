@@ -1,12 +1,33 @@
 #include "calvtkrun.h"
-simulationFunction calvtkRun::simulation;
 
-VTK_THREAD_RETURN_TYPE calvtkRun::workerFunction(void *args)
+VTK_THREAD_RETURN_TYPE calvtkRun::workerFunction(void *arg)
 {
+    calvtkRun* run = static_cast<calvtkRun*>(static_cast<vtkMultiThreader::ThreadInfo*>(arg)->UserData);
+    time_t start_time, end_time;
     bool again = false;
+    cout<<"Starting simulation...\n";
+    start_time = time(NULL);
+    // applies the callback init func registered by calRunAddInitFunc2D()
+    calRunInitSimulation2D(run->GetCALRun());
+
+    clock_t start = clock();
+    clock_t end = start;
     do{
-        again = calvtkRun::simulation();
+        //run->GetMutexLock()->Lock();
+        again = run->RunSimulationFunction();
+        //run->GetMutexLock()->Unlock();
+        double time = (double) (end - start) / CLOCKS_PER_SEC * 1000.0;
+        if(time >= 500){
+            run->GetRender()->Update();
+            start = clock();
+        } else {
+            end = clock();
+        }
     }while(again);
+
+    calRunFinalizeSimulation2D(run->GetCALRun());
+    end_time = time(NULL);
+    cout<<"Simulation terminated."<<endl<<"Elapsed time: "<<end_time-start_time<<endl;
 
     return VTK_THREAD_RETURN_VALUE;
 }
@@ -16,24 +37,42 @@ calvtkRun* calvtkRun::New()
 }
 void calvtkRun::Delete()
 {
-    delete this;
+    mutex->Delete();
+    threader->TerminateThread(threadId);
+    threader->Delete();
+    renderInteractor->Delete();
 }
 
 void calvtkRun::SetRender(calvtkRender2D * const render)
 {
+    this->render = render;
     renderInteractor->SetRenderWindow(render->renderWindow);
+}
+calvtkRender2D* calvtkRun::GetRender()
+{
+    return render;
 }
 
 void calvtkRun::CreateRefreshRenderTimer(unsigned int milliseconds)
 {
-    renderTimer = calvtkRenderTimer::New();
-    renderInteractor->AddObserver(vtkCommand::TimerEvent,renderTimer);
+    timer = calvtkTimer::New();
+    timer->SetRender(render);
+    timer->SetRun(this);
+    renderInteractor->AddObserver(vtkCommand::TimerEvent,timer);
     timerId = renderInteractor->CreateRepeatingTimer(milliseconds);
 }
 
 void calvtkRun::SetSimulationFunction(simulationFunction function)
 {
     calvtkRun::simulation = function;
+}
+void calvtkRun::SetCALRun(CALRun2D* calrun)
+{
+    this->calrun = calrun;
+}
+CALRun2D* calvtkRun::GetCALRun()
+{
+    return calrun;
 }
 
 void calvtkRun::Initialize()
@@ -43,19 +82,30 @@ void calvtkRun::Initialize()
 
 void calvtkRun::Start()
 {
-    threadId = threader->SpawnThread(workerFunction,NULL);
+    threadId = threader->SpawnThread(workerFunction,this);
     renderInteractor->Start();
+}
+vtkMutexLock* calvtkRun::GetMutexLock()
+{
+    return mutex;
 }
 
 calvtkRun::calvtkRun()
 {
+    mutex = vtkMutexLock::New();
+    style = vtkInteractorStyleSwitch::New();
+    style->SetCurrentStyleToTrackballCamera();
     renderInteractor = vtkRenderWindowInteractor::New();
+    renderInteractor->SetInteractorStyle(style);
     threader = vtkMultiThreader::New();
 }
 
 calvtkRun::~calvtkRun()
 {
-    threader->TerminateThread(threadId);
-    threader->Delete();
-    renderInteractor->Delete();
+
+}
+
+bool calvtkRun::RunSimulationFunction()
+{
+    return simulation();
 }

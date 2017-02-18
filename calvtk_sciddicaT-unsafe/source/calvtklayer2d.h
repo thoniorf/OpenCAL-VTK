@@ -17,16 +17,32 @@ extern "C" {
 #include <vtkPolyDataMapper.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
+#include <vtkMultiThreader.h>
+
+#include <vector>
 
 #define Z_OFFSET_STEP 100
 
 enum calvtkLayerType { CALVTK_SINGLE_LAYER, CALVTK_MULTI };
 
+struct Cell {
+    int i;
+    int j;
+};
+
+class calvtkLayer2D;
+
+struct WorkerQaud{
+    int index_start = 0;
+    int index_end = 0;
+    calvtkLayer2D* layer;
+};
+
 class calvtkLayer2D : public calvtkAbstractLayer
 {
 public:
-    calvtkLayer2D();
-    ~calvtkLayer2D();
+    static calvtkLayer2D * New();
+    void Delete();
 
     void SetCALModel2D(CALModel2D* const model);
     CALModel2D* GetCALModel2D();
@@ -37,12 +53,20 @@ public:
     void SetCellSize(int size);
     int GetCellSize();
 
+    int GetRows();
+    int GetCols();
+
+    void SetPvalue(double p_value);
+
+    double* GetBounds(double* bounds);
+
     void SetLayerType(calvtkLayerType type);
 
     void GenerateDataSet();
 
     void GenerateScalarValues();
     void UpdateScalarValues();
+    void UpdateScalarValues(int index_start,int index_end);
 
     void Update();
 
@@ -55,10 +79,21 @@ public:
     void SetLookupTable(calvtkLookupTable* const lookuptable);
 
 protected:
+
+    calvtkLayer2D();
+    ~calvtkLayer2D();
+
+    void AddActiveCell(int i, int j);
+    void ComputeActiveCell(int i,int j);
+    bool FindActiveCell(int i,int j);
     void ComputeExtremes();
 
 private:
+    static VTK_THREAD_RETURN_TYPE LayerUpdateFunction(void * args);
     static double z_offset;
+    double p_value;
+
+    std::vector<Cell> active_cells;
 
     CALModel2D* model;
     CALSubstate2Dr* substate;
@@ -71,6 +106,8 @@ private:
     vtkPolyData* polydata;
     vtkPolyDataMapper* mapper;
     vtkActor* actor;
+
+    vtkMultiThreader* worker;
 
 
 };

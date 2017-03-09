@@ -19,6 +19,7 @@ public:
     calvtkLayer2D* GetLayer();
 
     void SetPosition(double x, double y);
+    void SetSize(double width,double height);
 
     void SetOrientationToHorizontal ();
     void SetOrientationToVertical ();

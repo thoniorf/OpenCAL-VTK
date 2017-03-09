@@ -75,6 +75,13 @@ int main()
 
     render->AddScalarBar(debrisBar);
 
+    calvtkScalarBar* elevationBar = calvtkScalarBar::New();
+    elevationBar->SetLayer(elevation);
+    elevationBar->SetOrientationToHorizontal();
+    elevationBar->SetPosition(0,0);
+
+    render->AddScalarBar(elevationBar);
+
     calvtkOutline* outline = calvtkOutline::New();
     outline->SetLayer(elevation);
     outline->SetColor(0,0,0);

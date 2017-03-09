@@ -37,9 +37,18 @@ void calvtkScalarBar::SetPosition(double x,double y)
     vtkScalarBarActor::SetPosition(x,y);
 }
 
+void calvtkScalarBar::SetSize(double width, double height)
+{
+    vtkScalarBarActor::SetWidth(width);
+    vtkScalarBarActor::SetHeight(height);
+}
+
 void calvtkScalarBar::SetOrientationToHorizontal()
 {
     vtkScalarBarActor::SetOrientationToHorizontal();
+    double width = GetWidth();
+    double height = GetHeight();
+    SetSize(height,width);
 }
 
 void calvtkScalarBar::SetOrientationToVertical()

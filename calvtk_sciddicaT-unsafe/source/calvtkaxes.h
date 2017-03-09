@@ -28,5 +28,9 @@ protected:
     ~calvtkAxes();
 
     vtkOrientationMarkerWidget * widget;
+private :
+    double outlineRed = 0.93;
+    double outlineGreen = 0.57;
+    double outlineBlue = 0.13;
 };
 #endif // CALVTKAXES_H

@@ -20,7 +20,7 @@ public:
     calvtkAbstractLayer();
     ~calvtkAbstractLayer();
 
-    std::string GetLayerName();
+    std::string GetName();
     void SetName(std::string name);
 
     virtual void GenerateDataSet() = 0;

@@ -10,6 +10,10 @@ void calvtkAbstractLayer::SetName(std::string name)
 {
     this->name = name;
 }
+std::string calvtkAbstractLayer::GetName()
+{
+    return name;
+}
 
 double* calvtkAbstractLayer::GetExtremes()
 {

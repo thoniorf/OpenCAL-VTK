@@ -23,6 +23,7 @@ char* calvtkScalarBar::GetTitle()
 void calvtkScalarBar::SetLayer(calvtkLayer2D * const layer)
 {
     this->layer = layer;
+    SetTitle(layer->GetName());
     vtkScalarBarActor::SetLookupTable(layer->GetLookupTable());
 }
 

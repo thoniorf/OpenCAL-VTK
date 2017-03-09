@@ -55,7 +55,7 @@ calvtkAxes::calvtkAxes()
     Transform = vtkTransform::New();
 
     widget = vtkOrientationMarkerWidget::New();
-    widget->SetOutlineColor(0.93,0.57,0.13);
+    widget->SetOutlineColor(outlineRed,outlineGreen,outlineBlue);
     widget->SetOrientationMarker(this);
 
 }

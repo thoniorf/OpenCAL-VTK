@@ -3,10 +3,12 @@
 VTK_THREAD_RETURN_TYPE calvtkRun::workerFunction(void *arg)
 {
     calvtkRun* run = static_cast<calvtkRun*>(static_cast<vtkMultiThreader::ThreadInfo*>(arg)->UserData);
+
     time_t start_time, end_time;
     bool again = false;
     cout<<"Starting simulation...\n";
     start_time = time(NULL);
+
     // applies the callback init func registered by calRunAddInitFunc2D()
     calRunInitSimulation2D(run->GetCALRun());
 
@@ -28,9 +30,21 @@ VTK_THREAD_RETURN_TYPE calvtkRun::workerFunction(void *arg)
     calRunFinalizeSimulation2D(run->GetCALRun());
     end_time = time(NULL);
     cout<<"Simulation terminated."<<endl<<"Elapsed time: "<<end_time-start_time<<endl;
-
+    run->DestroyRefreshRenderTimer();
     return VTK_THREAD_RETURN_VALUE;
 }
+
+void calvtkRun::TerminateAppCallbackFunction(vtkObject *caller, unsigned long eventId, void *clientData, void *callData)
+{
+    vtkRenderWindowInteractor * iren = static_cast<vtkRenderWindowInteractor*>(caller);
+    std::string key = iren->GetKeySym();
+
+    if(key == "q" || key == "e"){
+        iren->GetRenderWindow()->Finalize();
+        iren->TerminateApp();
+    }
+}
+
 calvtkRun* calvtkRun::New()
 {
     return new calvtkRun();
@@ -41,6 +55,7 @@ void calvtkRun::Delete()
     threader->TerminateThread(threadId);
     threader->Delete();
     renderInteractor->Delete();
+    terminateAppCallback->Delete();
 }
 
 void calvtkRun::SetRender(calvtkRender2D * const render)
@@ -61,6 +76,10 @@ void calvtkRun::CreateRefreshRenderTimer(unsigned int milliseconds)
     renderInteractor->AddObserver(vtkCommand::TimerEvent,timer);
     timerId = renderInteractor->CreateRepeatingTimer(milliseconds);
 }
+void calvtkRun::DestroyRefreshRenderTimer()
+{
+    renderInteractor->DestroyTimer(timerId);
+}
 
 void calvtkRun::SetSimulationFunction(simulationFunction function)
 {
@@ -77,6 +96,8 @@ CALRun2D* calvtkRun::GetCALRun()
 
 void calvtkRun::Initialize()
 {
+    terminateAppCallback->SetCallback(TerminateAppCallbackFunction);
+    renderInteractor->AddObserver(vtkCommand::KeyPressEvent,terminateAppCallback);
     renderInteractor->Initialize();
 }
 
@@ -97,6 +118,7 @@ calvtkRun::calvtkRun()
     style->SetCurrentStyleToTrackballCamera();
     renderInteractor = vtkRenderWindowInteractor::New();
     renderInteractor->SetInteractorStyle(style);
+    terminateAppCallback = vtkCallbackCommand::New();
     threader = vtkMultiThreader::New();
 }
 

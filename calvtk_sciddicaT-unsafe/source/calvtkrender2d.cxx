@@ -8,6 +8,8 @@ void calvtkRender2D::Delete()
 {
     renderWindow->Delete();
     renderer->Delete();
+    layers.clear();
+    scalarbars.clear();
 }
 
 calvtkRender2D::calvtkRender2D(std::string windowName, int windowWidth, int windowHeight)
@@ -25,6 +27,9 @@ calvtkRender2D::~calvtkRender2D()
 {
     renderWindow->Delete();
     renderer->Delete();
+    layers.clear();
+    scalarbars.clear();
+
 }
 
 void calvtkRender2D::AddLayer(calvtkLayer2D* const layer)
@@ -41,6 +46,11 @@ void calvtkRender2D::AddScalarBar(calvtkScalarBar* const scalarBar)
 {
     scalarbars.push_back(scalarBar);
     renderer->AddActor2D(scalarBar);
+}
+void calvtkRender2D::SetOutline(calvtkOutline * const outline)
+{
+    this->outline = outline;
+    renderer->AddActor(outline->actor);
 }
 
 void calvtkRender2D::Inizialization()
@@ -62,6 +72,16 @@ void calvtkRender2D::Update()
 void calvtkRender2D::Render()
 {
     renderWindow->Render();
+}
+
+void calvtkRender2D::SetWindowName(std::string name)
+{
+    renderWindow->SetWindowName(name.c_str());
+}
+
+void calvtkRender2D::SetWindowSize(int width, int height)
+{
+    renderWindow->SetSize(width,height);
 }
 
 void calvtkRender2D::SetBackgroundColor(double red, double green, double blue)

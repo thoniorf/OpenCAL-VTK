@@ -3,6 +3,7 @@
 
 #include "calvtklayer2d.h"
 #include "calvtkscalarbar.h"
+#include "calvtkoutline.h"
 
 #include <vtkPolyData.h>
 #include <vtkRenderer.h>
@@ -22,7 +23,7 @@ public:
     calvtkLayer2D* RemoveLayer(int);
 
     void AddScalarBar(calvtkScalarBar * const scalarBar);
-    void SetOutline();
+    void SetOutline(calvtkOutline* const outline);
 
     void Inizialization();
 
@@ -30,6 +31,8 @@ public:
 
     void Render();
 
+    void SetWindowName(std::string name);
+    void SetWindowSize(int width, int height);
     void SetBackgroundColor(double red, double green, double blue);
 
     void ResetCamera();
@@ -39,7 +42,7 @@ protected:
 private:
     std::vector<calvtkLayer2D*> layers;
     std::vector<calvtkScalarBar*> scalarbars;
-
+    calvtkOutline* outline;
     vtkRenderer* renderer;
     vtkRenderWindow* renderWindow;
 

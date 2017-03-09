@@ -6,35 +6,12 @@
 #include "calvtkrender2d.h"
 #include "calvtkrun.h"
 
-#include <thread>
-#include <mutex>
-CALVTKRender *vtkRender;
 bool simulationUpdateAndRender(){
     CALbyte again;
 
     again = calRunCAStep2D(sciddicaT_simulation);
     sciddicaT_simulation->step++;
     return again;
-}
-
-void simulationThreadWorker(bool (*simulationRunFunction)()){
-    time_t start_time, end_time;
-    bool again;
-
-    printf ("Starting simulation...\n");
-    start_time = time(NULL);
-    // applies the callback init func registered by calRunAddInitFunc2D()
-    calRunInitSimulation2D(sciddicaT_simulation);
-
-
-    do {
-        again = (*simulationRunFunction)();
-    }
-    while(again);
-
-    calRunFinalizeSimulation2D(sciddicaT_simulation);
-    end_time = time(NULL);
-    printf ("Simulation terminated.\nElapsed time: %lds\n", end_time-start_time);
 }
 
 int main()
@@ -54,6 +31,7 @@ int main()
     elevation->SetLayerType(CALVTK_SINGLE_LAYER);
     elevation->GenerateDataSet();
     elevation->GenerateScalarValues();
+    elevation->WarpScalar();
 
     calvtkLookupTable* elevationLUT = calvtkLookupTable::New();
     elevationLUT->SetHueRange(.0,.0);
@@ -72,7 +50,8 @@ int main()
     debris->SetCellSize(10);
     debris->SetLayerType(CALVTK_MULTI);
     debris->SetPvalue(P_EPSILON);
-    debris->GenerateDataSet();
+    debris->CopyDataSetFromLayer(elevation);
+    //debris->GenerateDataSet();
     debris->GenerateScalarValues();
 
     calvtkLookupTable* debrisLUT = calvtkLookupTable::New();
@@ -83,13 +62,24 @@ int main()
     debrisLUT->Build();
     debris->SetLookupTable(debrisLUT);
 
-
     calvtkRender2D* render = calvtkRender2D::New();
     render->AddLayer(elevation);
     render->AddLayer(debris);
     render->SetBackgroundColor(.1,.2,.3);
     render->Inizialization();
     render->Update();
+
+    calvtkScalarBar* debrisBar = calvtkScalarBar::New();
+    debrisBar->SetLayer(debris);
+    debrisBar->SetOrientationToVertical();
+
+    render->AddScalarBar(debrisBar);
+
+    calvtkOutline* outline = calvtkOutline::New();
+    outline->SetLayer(elevation);
+    outline->SetColor(0,0,0);
+
+    render->SetOutline(outline);
 
     calvtkRun * run = calvtkRun::New();
     run->SetRender(render);
@@ -112,41 +102,10 @@ int main()
     debris->Delete();
     elevation->Delete();
     axes->Delete();
-
-    return EXIT_SUCCESS;
-
-    vtkRender = new CALVTKRender(sciddicaT,10);
-    vtkRender->calvtkSetBaseRendering(CALVTK_RENDER3D);
-    vtkRender->calvtkAddLayer(Q.z,"Elevation");
-    vtkRender->calvtkAddLayer(Q.h,"Debris");
-    vtkRender->calvtkGenerateAllLayersPolyData();
-    vtkRender->calvtkGenerateAllLayersScalarsValues();
-    vtkRender->calvtkGenerateAllLayerLookupTable();
-
-    int z_id = vtkRender->calvtkGetLayerId(Q.z);
-    vtkRender->calvtkSetLayerValueRange(z_id,0.0,1.0);
-    vtkRender->calvtkSetLayerHueRange(z_id,.0,.0);
-    vtkRender->calvtkSetLayerSaturationRange(z_id,.0,.0);
-    vtkRender->calvtkSetLayerAboveColor(z_id,.0,.0,.0,.0);
-    vtkRender->calvtkSetLayerBelowColor(z_id,.0,.0,.0,.0);
-
-    vtkRender->calvtkBuildAllLayerLookupTable();
-    vtkRender->calvtkWarpScalar();
-    vtkRender->calvtkAddAxes();
-    vtkRender->calvtkRenderInizialization(1);
-
-
-
-    std::thread simulationRunThread(simulationThreadWorker,simulationUpdateAndRender);
-
-    vtkRender->Start();
-
-    simulationRunThread.join();
+    outline->Delete();
 
     sciddicaTConfigurationSave();
     sciddicaTFinalization();
 
-    delete vtkRender;
-
-    return EXIT_SUCCESS;
+    return 0;
 }

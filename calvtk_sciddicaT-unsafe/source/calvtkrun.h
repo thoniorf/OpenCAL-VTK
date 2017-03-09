@@ -33,6 +33,7 @@ public:
     void SetRender(calvtkRender2D* const render);
     calvtkRender2D* GetRender();
     void CreateRefreshRenderTimer(unsigned int milliseconds);
+    void DestroyRefreshRenderTimer();
     void SetSimulationFunction(bool (*argFunction)());
     void SetCALRun(CALRun2D * calrun);
     CALRun2D* GetCALRun();
@@ -48,6 +49,7 @@ protected:
     bool RunSimulationFunction();
 private:
     static VTK_THREAD_RETURN_TYPE workerFunction(void * args);
+    static void TerminateAppCallbackFunction(vtkObject* caller, long unsigned int eventId, void* clientData, void* callData);
     simulationFunction simulation;
 
     int timerId;
@@ -58,7 +60,7 @@ private:
     CALRun2D* calrun;
 
     calvtkTimer * timer;
-
+    vtkCallbackCommand* terminateAppCallback;
     vtkRenderWindowInteractor*  renderInteractor;
     vtkInteractorStyleSwitch * style;
     vtkMultiThreader* threader;

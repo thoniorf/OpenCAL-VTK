@@ -1,14 +1,7 @@
 #include "calvtklayer2d.h"
 
-double calvtkLayer2D::z_offset =0;
-
-VTK_THREAD_RETURN_TYPE calvtkLayer2D::LayerUpdateFunction(void *arg)
-{
-    WorkerQaud* layer = static_cast<WorkerQaud*>(static_cast<vtkMultiThreader::ThreadInfo*>(arg)->UserData);
-    layer->layer->UpdateScalarValues(layer->index_start,layer->index_end);
-    return VTK_THREAD_RETURN_VALUE;
-}
-
+double calvtkLayer2D::z_offset = 0;
+double calvtkLayer2D::scaleFactor = 1;
 
 calvtkLayer2D* calvtkLayer2D::New()
 {
@@ -21,7 +14,6 @@ void calvtkLayer2D::Delete()
     mapper->Delete();
     actor->Delete();
     celldata->Delete();
-    worker->Delete();
 }
 
 calvtkLayer2D::calvtkLayer2D():model(NULL),substate(NULL),cols(0),rows(0),cellsize(0),type(CALVTK_MULTI),calvtkAbstractLayer()
@@ -37,8 +29,6 @@ calvtkLayer2D::calvtkLayer2D():model(NULL),substate(NULL),cols(0),rows(0),cellsi
 
     actor = vtkActor::New();
     actor->SetMapper(mapper);
-
-    worker = vtkMultiThreader::New();
 
     p_value = 0.0;
 }
@@ -101,6 +91,31 @@ void calvtkLayer2D::SetLayerType(calvtkLayerType type)
     this->type = type;
 }
 
+void calvtkLayer2D::WarpScalar()
+{
+    vtkCellDataToPointData* cellToPoint = vtkCellDataToPointData::New();
+    cellToPoint->SetInputData(polydata);
+    cellToPoint->Update();
+
+    polydata->GetPointData()->DeepCopy(cellToPoint->GetPolyDataOutput()->GetPointData());
+    vtkWarpScalar* warper = vtkWarpScalar::New();
+    warper->SetInputData(polydata);
+    warper->SetScaleFactor(scaleFactor);
+    warper->UseNormalOn();
+    warper->SetNormal(0,0,1);
+    warper->Update();
+
+    polydata->DeepCopy(warper->GetOutput());
+
+    cellToPoint->Delete();
+    warper->Delete();
+}
+
+void calvtkLayer2D::CopyDataSetFromLayer(calvtkLayer2D * const layer)
+{
+    polydata->DeepCopy(layer->GetPolyData());
+}
+
 
 void calvtkLayer2D::GenerateDataSet()
 {
@@ -130,47 +145,9 @@ void calvtkLayer2D::GenerateDataSet()
     transformation->Delete();
     sourcePlane->Delete();
 }
-void calvtkLayer2D::AddActiveCell(int i, int j)
-{
-    Cell cell;
-    cell.i = i;
-    cell.j = j;
-
-    active_cells.push_back(cell);
-}
-
-void calvtkLayer2D::ComputeActiveCell(int i, int j)
-{
-    for(int l = i-1; l-i <=1; l++)
-    {
-        for(int k = j-1; k-j <=1; k++)
-        {
-            if(!FindActiveCell(i+l,j+k) && l>= 0 && k>= 0){
-                AddActiveCell(i+l,j+k);
-            }
-        }
-    }
-}
-bool calvtkLayer2D::FindActiveCell(int i, int j)
-{
-    Cell cell;
-    for(int k=0; k < active_cells.size(); k++){
-        cell = active_cells[k];
-        if(cell.i == i && cell.j == j)
-        {
-            return true;
-        }
-    }
-    return false;
-}
 
 void calvtkLayer2D::GenerateScalarValues()
 {
-    /*
-     * leggi opencal cal2dbuffer.c
-     * cal2dactivecell*.c
-     */
-
     celldata->SetName(name.c_str());
     celldata->SetNumberOfComponents(1);
     celldata->SetNumberOfTuples(rows*cols);
@@ -181,10 +158,6 @@ void calvtkLayer2D::GenerateScalarValues()
         for(int j = 0; j < cols; j++)
         {
             value = calGet2Dr(model,substate,i,j);
-//            if(value >= p_value && type != CALVTK_SINGLE_LAYER)
-//            {
-//                AddActiveCell(i,j);
-//            }
             celldata->SetComponent(tupleIndex,0,value);
             tupleIndex++;
         }
@@ -197,40 +170,20 @@ void calvtkLayer2D::UpdateScalarValues()
 {
     double value = 0;
     double tupleIndex = 0;
-//    Cell cell;
-//    int size = active_cells.size();
-//    for(int index = 0; index < size; index++)
-//    {
-//        cell = active_cells[index];
-//        ComputeActiveCell(cell.i,cell.j);
-//        celldata->SetComponent(cell.i*cols+cell.j,0,calGet2Dr(model,substate,cell.i,cell.j));
-//    }
 
-
-//    for(int i = 0; i < rows; i++)
-//    {
-//        for(int j = 0; j < cols; j++)
-//        {
-//            value = calGet2Dr(model,substate,i,j);
-//            if(value >= p_value)
-//            {
-//                celldata->SetComponent(tupleIndex,0,calGet2Dr(model,substate,i,j));
-//            }
-//            tupleIndex++;
-//        }
-//    }
-
-    // più veloce - ma funziona solo se è stata attivata ottimizzazione active_cells ( non naive )
-    CALBufferElement2D* current = model->contiguousLinkedList->head;
-
-        while( current != NULL )
+    for(int i = 0; i < rows; i++)
+    {
+        for(int j = 0; j < cols; j++)
         {
-            tupleIndex = current->cell.i * cols + current->cell.j;
-            celldata->SetComponent(tupleIndex,0,calGet2Dr(model,substate,current->cell.i,current->cell.j));
-            current = calGetNextBufferElement2D(model->contiguousLinkedList, current);
+            value = calGet2Dr(model,substate,i,j);
+            if(value >= p_value)
+            {
+                celldata->SetComponent(tupleIndex,0,calGet2Dr(model,substate,i,j));
+            }
+            tupleIndex++;
         }
+    }
 
-    celldata->Modified();
 
 }
 void calvtkLayer2D::UpdateScalarValues(int index_start, int index_end)
@@ -278,21 +231,6 @@ void calvtkLayer2D::Update()
 
         mapper->SetScalarRange(extremes);
 
-//        int index_start = 0;
-//        int step = (rows*cols)/worker->GetNumberOfThreads();
-
-//        for(int i = 0; i < worker->GetNumberOfThreads(); i++ )
-//        {
-//            WorkerQaud workerquad;
-//            workerquad.layer = this;
-//            workerquad.index_start = index_start;
-//            workerquad.index_end = index_start + step;
-//            index_start += step;
-//            worker->SetMultipleMethod(i,LayerUpdateFunction,&workerquad);
-//        }
-
-//        worker->MultipleMethodExecute();
-//        celldata->Modified();
         UpdateScalarValues();
 
     }

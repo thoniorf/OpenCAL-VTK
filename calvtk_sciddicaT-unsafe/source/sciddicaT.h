@@ -35,10 +35,12 @@ struct sciddicaTParameters {
     CALParameterr epsilon;
     CALParameterr r;
 };
-extern struct CALModel2D* sciddicaT;
+
 extern  struct CALRun2D* sciddicaT_simulation;
 extern struct sciddicaTSubstates Q;
 extern struct sciddicaTParameters P;
+
+extern struct CALModel2D* sciddicaT;
 
 void sciddicaTFlowsComputation(struct CALModel2D* sciddicaT, int i, int j);
 void sciddicaTRemoveInactiveCells(struct CALModel2D* sciddicaT, int i, int j);

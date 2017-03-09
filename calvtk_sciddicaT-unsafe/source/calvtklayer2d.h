@@ -13,11 +13,13 @@ extern "C" {
 #include <vtkDoubleArray.h>
 #include <vtkCellData.h>
 #include <vtkPlaneSource.h>
+#include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
-#include <vtkMultiThreader.h>
+#include <vtkCellDataToPointData.h>
+#include <vtkWarpScalar.h>
 
 #include <vector>
 
@@ -25,18 +27,6 @@ extern "C" {
 
 enum calvtkLayerType { CALVTK_SINGLE_LAYER, CALVTK_MULTI };
 
-struct Cell {
-    int i;
-    int j;
-};
-
-class calvtkLayer2D;
-
-struct WorkerQaud{
-    int index_start = 0;
-    int index_end = 0;
-    calvtkLayer2D* layer;
-};
 
 class calvtkLayer2D : public calvtkAbstractLayer
 {
@@ -62,8 +52,10 @@ public:
 
     void SetLayerType(calvtkLayerType type);
 
-    void GenerateDataSet();
+    void WarpScalar();
+    void CopyDataSetFromLayer(calvtkLayer2D* const layer);
 
+    void GenerateDataSet();
     void GenerateScalarValues();
     void UpdateScalarValues();
     void UpdateScalarValues(int index_start,int index_end);
@@ -89,12 +81,9 @@ protected:
     void ComputeExtremes();
 
 private:
-    static VTK_THREAD_RETURN_TYPE LayerUpdateFunction(void * args);
     static double z_offset;
+    static double scaleFactor;
     double p_value;
-
-    std::vector<Cell> active_cells;
-
     CALModel2D* model;
     CALSubstate2Dr* substate;
     int cols, rows, cellsize;
@@ -106,9 +95,6 @@ private:
     vtkPolyData* polydata;
     vtkPolyDataMapper* mapper;
     vtkActor* actor;
-
-    vtkMultiThreader* worker;
-
 
 };
 #endif // CALVTKLAYER2D_H
